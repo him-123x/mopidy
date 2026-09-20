@@ -53,3 +53,29 @@ def test_lookup_with_invalid_tags(provider):
     assert result[0].uri == track_uri
     assert result[0].name == "song1.wav"
     assert result[0].track_no is None
+
+
+def test_lookup_unwraps_pls_playlist(provider, tmp_path):
+    pls_content = (
+        "[playlist]\nNumberOfEntries=1\nFile1=http://stream.example.com/listen.pls\n"
+    )
+    pls_file = tmp_path / "test.pls"
+    pls_file.write_text(pls_content)
+
+    uri = f"file://{pls_file}"
+
+    tracks = provider.lookup(uri)
+    assert len(tracks) == 1
+    assert tracks[0].uri == "http://stream.example.com/listen.pls"
+
+
+def test_lookup_unwraps_m3u_playlist(provider, tmp_path):
+    m3u_content = "http://stream.example.com/listen.mp3\n"
+    m3u_file = tmp_path / "test.m3u"
+    m3u_file.write_text(m3u_content)
+
+    uri = f"file://{m3u_file}"
+
+    tracks = provider.lookup(uri)
+    assert len(tracks) == 1
+    assert tracks[0].uri == "http://stream.example.com/listen.mp3"
